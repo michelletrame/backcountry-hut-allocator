@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Backcountry Hut Reservations Calendar</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .legend {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 20px;
+        }
+
+        .month {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .month h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .calendar-table th {
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .calendar-table td {
+            border: 1px solid #e0e0e0;
+            vertical-align: top;
+            height: 120px;
+            padding: 4px;
+            position: relative;
+        }
+
+        .calendar-table td.empty {
+            background-color: #fafafa;
+        }
+
+        .day-number {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-abbrev {
+            font-size: 10px;
+            color: #999;
+            font-weight: 400;
+        }
+
+        .reservation {
+            font-size: 10px;
+            padding: 4px;
+            margin: 2px 0;
+            border-radius: 3px;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .hut-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .user-info {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .occupancy {
+            font-size: 9px;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .month {
+                page-break-inside: avoid;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🏔️ Backcountry Hut Reservations Calendar</h1>
+    <div class="subtitle">Season December 01, 2025 - May 31, 2026</div>
+
+    <div class="legend"><h3>Huts:</h3><div class="legend-item"><span class="color-box" style="background-color: #FF6B6B;"></span> Bradley</div><div class="legend-item"><span class="color-box" style="background-color: #4ECDC4;"></span> Benson</div><div class="legend-item"><span class="color-box" style="background-color: #45B7D1;"></span> Peter Grubb</div><div class="legend-item"><span class="color-box" style="background-color: #96CEB4;"></span> Ludlow</div><div class="legend-item">🥾 = Traverse</div></div>
+
+    <div class="calendar-grid">
+
+    <div class="month">
+        <h2>December 2025</h2>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+    <tr><td class="empty"></td><td class="day"><div class="day-number">1 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">2 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">3 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">4 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">5 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">6 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">7 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">8 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">9 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">10 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">11 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">12 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">13 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">14 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">15 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">16 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">17 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">18 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">19 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">20 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">21 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">22 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">23 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">24 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">25 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">26 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">27 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">28 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">29 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">30 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">31 <span class="day-abbrev">Wed</span></div></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="month">
+        <h2>January 2026</h2>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+    <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="day"><div class="day-number">1 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">2 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">3 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">4 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">5 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">6 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">7 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">8 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">9 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">10 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">11 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">12 <span class="day-abbrev">Mon</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Isaac Scears</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">13 <span class="day-abbrev">Tue</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Isaac Scears</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">14 <span class="day-abbrev">Wed</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Isaac Scears</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">15 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">16 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Ethan Kennon</div>
+                            <div class="occupancy">(12 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">17 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Ethan Kennon</div>
+                            <div class="occupancy">(12 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Scott Bennett</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        </td></tr>
+<tr><td class="day"><div class="day-number">18 <span class="day-abbrev">Sun</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Ethan Kennon</div>
+                            <div class="occupancy">(12 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Scott Bennett</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">19 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">20 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">21 <span class="day-abbrev">Wed</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Greg and Ryan Prouty</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">22 <span class="day-abbrev">Thu</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Greg and Ryan Prouty</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">23 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Greg and Ryan Prouty</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Benjamin Spielman</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">24 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley</div>
+                            <div class="user-info">Hal Tompkins</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Greg and Ryan Prouty</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Benjamin Spielman</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        </td></tr>
+<tr><td class="day"><div class="day-number">25 <span class="day-abbrev">Sun</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley</div>
+                            <div class="user-info">Hal Tompkins</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">26 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">27 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">28 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">29 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">30 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley</div>
+                            <div class="user-info">Martin Carnogursky</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Miranda Worrell</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Alex Newcomb</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">31 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley</div>
+                            <div class="user-info">Martin Carnogursky</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson</div>
+                            <div class="user-info">Miranda Worrell</div>
+                            <div class="occupancy">(6 people)</div>
+                        </div>
+                        
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Alex Newcomb</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td></tr>
+
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="month">
+        <h2>February 2026</h2>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+    <tr><td class="day"><div class="day-number">1 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">2 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">3 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">4 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">5 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">6 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">7 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">8 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">9 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">10 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">11 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">12 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">13 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">14 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">15 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">16 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">17 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">18 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">19 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">20 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley</div>
+                            <div class="user-info">Jason Martel-Dye</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">21 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley</div>
+                            <div class="user-info">Jason Martel-Dye</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td></tr>
+<tr><td class="day"><div class="day-number">22 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">23 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">24 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">25 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">26 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">27 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Lauren Tackbary</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">28 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Lauren Tackbary</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td></tr>
+
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="month">
+        <h2>March 2026</h2>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+    <tr><td class="day"><div class="day-number">1 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">2 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">3 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">4 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">5 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">6 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">7 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">8 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">9 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">10 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">11 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">12 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">13 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">14 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">15 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">16 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">17 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">18 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">19 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">20 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley 🥾</div>
+                            <div class="user-info">Andreas Jorgensen</div>
+                            <div class="occupancy">(4 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">21 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #FF6B6B; border-left: 4px solid #FF6B6B;">
+                            <div class="hut-name">Bradley 🥾</div>
+                            <div class="user-info">Andreas Jorgensen</div>
+                            <div class="occupancy">(4 people)</div>
+                        </div>
+                        </td></tr>
+<tr><td class="day"><div class="day-number">22 <span class="day-abbrev">Sun</span></div>
+                        <div class="reservation" style="background-color: #4ECDC4; border-left: 4px solid #4ECDC4;">
+                            <div class="hut-name">Benson 🥾</div>
+                            <div class="user-info">Andreas Jorgensen</div>
+                            <div class="occupancy">(4 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">23 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">24 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">25 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">26 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">27 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">28 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">29 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">30 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">31 <span class="day-abbrev">Tue</span></div></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="month">
+        <h2>April 2026</h2>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+    <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="day"><div class="day-number">1 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">2 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">3 <span class="day-abbrev">Fri</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Dick Simpson</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td><td class="day"><div class="day-number">4 <span class="day-abbrev">Sat</span></div>
+                        <div class="reservation" style="background-color: #45B7D1; border-left: 4px solid #45B7D1;">
+                            <div class="hut-name">Peter Grubb</div>
+                            <div class="user-info">Dick Simpson</div>
+                            <div class="occupancy">(15 people)</div>
+                        </div>
+                        </td></tr>
+<tr><td class="day"><div class="day-number">5 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">6 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">7 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">8 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">9 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">10 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">11 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">12 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">13 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">14 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">15 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">16 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">17 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">18 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">19 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">20 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">21 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">22 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">23 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">24 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">25 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">26 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">27 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">28 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">29 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">30 <span class="day-abbrev">Thu</span></div></td><td class="empty"></td><td class="empty"></td></tr>
+
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="month">
+        <h2>May 2026</h2>
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>Sun</th>
+                    <th>Mon</th>
+                    <th>Tue</th>
+                    <th>Wed</th>
+                    <th>Thu</th>
+                    <th>Fri</th>
+                    <th>Sat</th>
+                </tr>
+            </thead>
+            <tbody>
+    <tr><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="day"><div class="day-number">1 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">2 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">3 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">4 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">5 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">6 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">7 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">8 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">9 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">10 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">11 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">12 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">13 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">14 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">15 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">16 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">17 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">18 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">19 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">20 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">21 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">22 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">23 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">24 <span class="day-abbrev">Sun</span></div></td><td class="day"><div class="day-number">25 <span class="day-abbrev">Mon</span></div></td><td class="day"><div class="day-number">26 <span class="day-abbrev">Tue</span></div></td><td class="day"><div class="day-number">27 <span class="day-abbrev">Wed</span></div></td><td class="day"><div class="day-number">28 <span class="day-abbrev">Thu</span></div></td><td class="day"><div class="day-number">29 <span class="day-abbrev">Fri</span></div></td><td class="day"><div class="day-number">30 <span class="day-abbrev">Sat</span></div></td></tr>
+<tr><td class="day"><div class="day-number">31 <span class="day-abbrev">Sun</span></div></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td><td class="empty"></td></tr>
+
+            </tbody>
+        </table>
+    </div>
+    
+    </div>
+</body>
+</html>

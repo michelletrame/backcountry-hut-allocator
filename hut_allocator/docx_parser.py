@@ -64,7 +64,7 @@ class DOCXParser:
 
     def _extract_preference_from_table(self, table, start_row, pref_rank):
         """Extract a single preference's data from table rows."""
-        pref_data = {}
+        pref_data = {'preference_rank': pref_rank}  # FIX: Add preference_rank
 
         # Look at the next few rows after the preference header
         for i in range(start_row, min(start_row + 5, len(table.rows))):
@@ -82,13 +82,23 @@ class DOCXParser:
                 elif 'date out' in field_name:
                     pref_data['date_out'] = self._parse_date(field_value)
                 elif 'number of guests' in field_name or 'guests' in field_name:
-                    if field_value.upper() == 'ENTIRE':
+                    # FIX: Better handling of ENTIRE variants (En/re, Entire, ENTIRE, etc.)
+                    field_value_upper = field_value.upper()
+                    # Check for various spellings: ENTIRE, EN/RE, ENTTRE, etc.
+                    is_entire = (
+                        'ENTIRE' in field_value_upper or
+                        'EN/RE' in field_value_upper or
+                        'ENTRE' in field_value_upper or
+                        'ENTTRE' in field_value_upper or
+                        re.search(r'ENT[/\\]?[IT]?RE', field_value_upper)
+                    )
+                    if is_entire:
                         pref_data['party_size'] = 'ENTIRE'
                     else:
-                        try:
-                            pref_data['party_size'] = int(re.search(r'\d+', field_value).group())
-                        except:
-                            pass
+                        # FIX: Only try to extract number if digits exist
+                        digit_match = re.search(r'\d+', field_value)
+                        if digit_match:
+                            pref_data['party_size'] = int(digit_match.group())
 
         return pref_data
 
@@ -175,6 +185,8 @@ class DOCXParser:
 
     def _parse_date(self, date_str):
         """Parse various date formats."""
+        date_str = date_str.strip()
+
         formats = [
             '%m/%d/%Y',
             '%m-%d-%Y',
@@ -189,7 +201,23 @@ class DOCXParser:
 
         for fmt in formats:
             try:
-                return datetime.strptime(date_str.strip(), fmt).strftime('%Y-%m-%d')
+                return datetime.strptime(date_str, fmt).strftime('%Y-%m-%d')
+            except:
+                continue
+
+        # FIX: Handle M/D format without year (assume 2026)
+        # Try to parse M/D and add year
+        short_formats = [
+            '%m/%d',
+            '%m-%d',
+        ]
+
+        for fmt in short_formats:
+            try:
+                dt = datetime.strptime(date_str, fmt)
+                # Assume 2026 for dates without year
+                dt = dt.replace(year=2026)
+                return dt.strftime('%Y-%m-%d')
             except:
                 continue
 
