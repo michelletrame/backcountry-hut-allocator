@@ -7,11 +7,13 @@ def load_requests_from_csv(filename):
     Load reservation requests from CSV file.
 
     Expected CSV format:
-    UserName,PreferenceRank,Hut,StartDate,EndDate,PartySize
+    UserName,PreferenceRank,Hut,StartDate,EndDate,PartySize,TraverseGroup
 
     Example:
-    John Smith,1,Bradley,2026-02-12,2026-02-14,4
-    John Smith,2,Benson,2026-02-15,2026-02-17,ENTIRE
+    John Smith,1,Bradley,2026-02-12,2026-02-14,4,
+    John Smith,2,Benson,2026-02-15,2026-02-17,ENTIRE,
+    Jane Doe,3,Bradley,2026-03-20,2026-03-22,4,traverse_1
+    Jane Doe,3,Benson,2026-03-22,2026-03-23,4,traverse_1
     """
     from hut_allocator.config import HUTS
 
@@ -30,13 +32,17 @@ def load_requests_from_csv(filename):
             else:
                 party_size = int(party_size_str)
 
+            # Get traverse group (optional field for backward compatibility)
+            traverse_group = row.get('TraverseGroup', '').strip() or None
+
             request = ReservationRequest(
                 user_name=row['UserName'].strip(),
                 preference_rank=int(row['PreferenceRank']),
                 hut_name=hut_name,
                 start_date=row['StartDate'].strip(),
                 end_date=row['EndDate'].strip(),
-                party_size=party_size
+                party_size=party_size,
+                traverse_group=traverse_group
             )
             requests.append(request)
 
@@ -47,10 +53,10 @@ def save_allocation_to_csv(allocation, filename):
     Save allocation results to CSV file.
 
     Output format:
-    UserName,PreferenceRank,Hut,StartDate,EndDate,PartySize,Status
+    UserName,PreferenceRank,Hut,StartDate,EndDate,PartySize,TraverseGroup,Status
     """
     with open(filename, 'w', newline='') as f:
-        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'Status']
+        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'TraverseGroup', 'Status']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
 
         writer.writeheader()
@@ -61,23 +67,14 @@ def save_allocation_to_csv(allocation, filename):
         for user in sorted(users):
             user_requests = allocation.get_user_requests(user)
 
-            # Find assigned request
+            # Find assigned request(s) - could be multiple for traverses
             assigned = [req for req in user_requests if req.assigned]
 
             if assigned:
-                req = assigned[0]
-                writer.writerow({
-                    'UserName': req.user_name,
-                    'PreferenceRank': req.preference_rank,
-                    'Hut': req.hut_name,
-                    'StartDate': req.start_date.strftime('%Y-%m-%d'),
-                    'EndDate': req.end_date.strftime('%Y-%m-%d'),
-                    'PartySize': req.party_size,
-                    'Status': f'ASSIGNED (Preference {req.preference_rank})'
-                })
-            else:
-                # List all unassigned requests for this user
-                for req in sorted(user_requests, key=lambda r: r.preference_rank):
+                # Sort by traverse group, then start date to keep traverse legs together
+                assigned_sorted = sorted(assigned, key=lambda r: (r.traverse_group or '', r.start_date))
+
+                for req in assigned_sorted:
                     writer.writerow({
                         'UserName': req.user_name,
                         'PreferenceRank': req.preference_rank,
@@ -85,6 +82,20 @@ def save_allocation_to_csv(allocation, filename):
                         'StartDate': req.start_date.strftime('%Y-%m-%d'),
                         'EndDate': req.end_date.strftime('%Y-%m-%d'),
                         'PartySize': req.party_size,
+                        'TraverseGroup': req.traverse_group or '',
+                        'Status': f'ASSIGNED (Preference {req.preference_rank})'
+                    })
+            else:
+                # List all unassigned requests for this user
+                for req in sorted(user_requests, key=lambda r: (r.preference_rank, r.start_date)):
+                    writer.writerow({
+                        'UserName': req.user_name,
+                        'PreferenceRank': req.preference_rank,
+                        'Hut': req.hut_name,
+                        'StartDate': req.start_date.strftime('%Y-%m-%d'),
+                        'EndDate': req.end_date.strftime('%Y-%m-%d'),
+                        'PartySize': req.party_size,
+                        'TraverseGroup': req.traverse_group or '',
                         'Status': 'UNASSIGNED'
                     })
 

@@ -20,9 +20,10 @@ from datetime import datetime
 # Valid hut names
 VALID_HUTS = ['Bradley', 'Benson', 'Peter Grubb', 'Ludlow']
 
-def parse_traverse_request(row):
+def parse_traverse_request(row, traverse_id):
     """
     Parse a traverse request and split into two separate reservations.
+    Both legs are linked with a traverse_id for atomic assignment.
     Returns list of 2 row dicts, or None if can't parse.
 
     Example input:
@@ -32,8 +33,8 @@ def parse_traverse_request(row):
 
     Returns:
     [
-        {Bradley: 3/20-3/22},
-        {Benson: 3/22-3/23}
+        {Bradley: 3/20-3/22, TraverseGroup: 'traverse_1'},
+        {Benson: 3/22-3/23, TraverseGroup: 'traverse_1'}
     ]
     """
     hut_str = row['Hut'].lower()
@@ -79,7 +80,8 @@ def parse_traverse_request(row):
         'Hut': hut1_name,
         'StartDate': date1,
         'EndDate': date2,
-        'PartySize': row['PartySize']
+        'PartySize': row['PartySize'],
+        'TraverseGroup': traverse_id
     })
 
     # Second hut reservation
@@ -89,7 +91,8 @@ def parse_traverse_request(row):
         'Hut': hut2_name,
         'StartDate': date2,
         'EndDate': date3,
-        'PartySize': row['PartySize']
+        'PartySize': row['PartySize'],
+        'TraverseGroup': traverse_id
     })
 
     return rows
@@ -217,16 +220,19 @@ def clean_csv(input_file, output_file, include_invalid=False):
     cleaned_rows = []
     invalid_rows = []
     issues = []
+    traverse_counter = 1  # Track unique traverse IDs
 
     for i, row in enumerate(rows, start=2):  # Start at 2 (line 1 is header)
         # Check if this is a traverse request that should be split
         if 'traverse' in row['Hut'].lower():
-            traverse_rows = parse_traverse_request(row)
+            traverse_id = f"traverse_{traverse_counter}"
+            traverse_counter += 1
+            traverse_rows = parse_traverse_request(row, traverse_id)
             if traverse_rows:
                 # Process each part of the traverse separately
                 for traverse_row in traverse_rows:
                     rows.append(traverse_row)
-                print(f"  Split traverse request for {row['UserName']} into 2 reservations")
+                print(f"  Split traverse request for {row['UserName']} into 2 reservations (ID: {traverse_id})")
                 continue  # Skip normal processing for this row
 
         cleaned = {}
@@ -273,6 +279,9 @@ def clean_csv(input_file, output_file, include_invalid=False):
             row_issues.append(f"Invalid party size: {row['PartySize']} - {size_err}")
             is_valid = False
 
+        # TraverseGroup (from traverse row dict, or empty for regular requests)
+        cleaned['TraverseGroup'] = row.get('TraverseGroup', '')
+
         # Store results
         if is_valid:
             cleaned_rows.append(cleaned)
@@ -289,7 +298,7 @@ def clean_csv(input_file, output_file, include_invalid=False):
 
     # Write cleaned data
     if cleaned_rows:
-        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize']
+        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'TraverseGroup']
         if include_invalid:
             fieldnames.append('_INVALID')
 

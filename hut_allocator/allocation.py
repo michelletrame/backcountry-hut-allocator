@@ -25,8 +25,24 @@ class Allocation:
         self.unassigned_requests = set(requests)
         self.score = 0
 
+        # Build traverse groups mapping for atomic operations
+        self.traverse_groups = {}  # {traverse_id: [req1, req2]}
+        for req in requests:
+            if req.is_traverse:
+                if req.traverse_group not in self.traverse_groups:
+                    self.traverse_groups[req.traverse_group] = []
+                self.traverse_groups[req.traverse_group].append(req)
+
     def assign_request(self, request):
-        """Try to assign a request to its specified hut."""
+        """
+        Try to assign a request to its specified hut.
+        For traverse requests, both legs must be assigned atomically.
+        """
+        # Check if this is part of a traverse
+        if request.is_traverse:
+            return self._assign_traverse(request.traverse_group)
+
+        # Regular single request
         hut = self.huts.get(request.hut_name)
         if not hut:
             return False
@@ -38,16 +54,61 @@ class Allocation:
             return True
         return False
 
+    def _assign_traverse(self, traverse_id):
+        """
+        Atomically assign all legs of a traverse.
+        All legs must be available or none will be assigned.
+        """
+        traverse_legs = self.traverse_groups.get(traverse_id, [])
+        if not traverse_legs:
+            return False
+
+        # First check if ALL legs can be accommodated
+        for req in traverse_legs:
+            hut = self.huts.get(req.hut_name)
+            if not hut or not hut.can_accommodate(req):
+                return False
+
+        # All legs can be accommodated, assign them all
+        for req in traverse_legs:
+            hut = self.huts[req.hut_name]
+            hut.add_reservation(req)
+            self.assigned_requests.add(req)
+            self.unassigned_requests.discard(req)
+
+        return True
+
     def unassign_request(self, request):
-        """Remove a request from its assigned hut."""
+        """
+        Remove a request from its assigned hut.
+        For traverse requests, both legs are unassigned atomically.
+        """
         if not request.assigned:
             return
 
+        # Check if this is part of a traverse
+        if request.is_traverse:
+            self._unassign_traverse(request.traverse_group)
+            return
+
+        # Regular single request
         hut = self.huts.get(request.hut_name)
         if hut:
             hut.remove_reservation(request)
             self.assigned_requests.discard(request)
             self.unassigned_requests.add(request)
+
+    def _unassign_traverse(self, traverse_id):
+        """Atomically unassign all legs of a traverse."""
+        traverse_legs = self.traverse_groups.get(traverse_id, [])
+
+        for req in traverse_legs:
+            if req.assigned:
+                hut = self.huts.get(req.hut_name)
+                if hut:
+                    hut.remove_reservation(req)
+                    self.assigned_requests.discard(req)
+                    self.unassigned_requests.add(req)
 
     def calculate_score(self):
         """
@@ -57,15 +118,26 @@ class Allocation:
 
         This ensures the optimizer prioritizes getting everyone at least one
         assignment before optimizing for specific preference ranks.
+
+        Note: Traverses count as ONE preference assignment (not double-counted).
         """
         # Count unique users who have at least one assignment
         assigned_users = set(req.user_name for req in self.assigned_requests)
         users_assigned_bonus = len(assigned_users) * USER_ASSIGNMENT_BONUS
 
-        # Add preference scores
+        # Add preference scores, counting each traverse only once
         preference_score = 0
+        counted_traverses = set()
+
         for request in self.assigned_requests:
-            preference_score += PREFERENCE_SCORES.get(request.preference_rank, 0)
+            if request.is_traverse:
+                # Only count each traverse group once
+                if request.traverse_group not in counted_traverses:
+                    preference_score += PREFERENCE_SCORES.get(request.preference_rank, 0)
+                    counted_traverses.add(request.traverse_group)
+            else:
+                # Regular request, count normally
+                preference_score += PREFERENCE_SCORES.get(request.preference_rank, 0)
 
         self.score = users_assigned_bonus + preference_score
         return self.score
@@ -84,8 +156,11 @@ class Allocation:
 
     def greedy_assign(self):
         """Greedy assignment: assign in order of preference rank."""
+        # Get unique requests (one per user-preference, treating traverse as one unit)
+        unique_requests = self._get_unique_requests()
+
         # Sort requests by preference rank (1 first, then 2, etc.)
-        sorted_requests = sorted(self.requests, key=lambda r: (r.preference_rank, random.random()))
+        sorted_requests = sorted(unique_requests, key=lambda r: (r.preference_rank, random.random()))
 
         for request in sorted_requests:
             user = request.user_name
@@ -97,7 +172,9 @@ class Allocation:
 
     def random_assign(self):
         """Randomly assign requests."""
-        shuffled = list(self.requests)
+        # Get unique requests (one per user-preference, treating traverse as one unit)
+        unique_requests = self._get_unique_requests()
+        shuffled = list(unique_requests)
         random.shuffle(shuffled)
 
         for request in shuffled:
@@ -106,6 +183,24 @@ class Allocation:
                 self.assign_request(request)
 
         self.calculate_score()
+
+    def _get_unique_requests(self):
+        """
+        Get one request per user-preference combination.
+        For traverses, return just the first leg (the second will be handled atomically).
+        """
+        unique = []
+        seen_traverses = set()
+
+        for req in self.requests:
+            if req.is_traverse:
+                if req.traverse_group not in seen_traverses:
+                    unique.append(req)
+                    seen_traverses.add(req.traverse_group)
+            else:
+                unique.append(req)
+
+        return unique
 
     def try_swap_requests(self, req1, req2):
         """
@@ -171,12 +266,34 @@ class Allocation:
             user_requests = self.get_user_requests(user)
             assigned = [req for req in user_requests if req.assigned]
             if assigned:
+                # Sort assigned: traverses together, then by start date
+                assigned_sorted = sorted(assigned, key=lambda r: (r.traverse_group or '', r.start_date))
+
                 summary += f"\n{user}: ASSIGNED (Preference {assigned[0].preference_rank})\n"
-                summary += f"  {assigned[0]}\n"
+
+                # Group traverse legs together in output
+                displayed_traverses = set()
+                for req in assigned_sorted:
+                    if req.is_traverse:
+                        if req.traverse_group not in displayed_traverses:
+                            # Find all legs of this traverse
+                            traverse_legs = [r for r in assigned_sorted if r.traverse_group == req.traverse_group]
+                            traverse_legs_sorted = sorted(traverse_legs, key=lambda r: r.start_date)
+
+                            summary += f"  TRAVERSE (P{req.preference_rank}):\n"
+                            for leg in traverse_legs_sorted:
+                                summary += f"    - {leg.hut_name}: {leg.start_date.strftime('%Y-%m-%d')} to {leg.end_date.strftime('%Y-%m-%d')}, {leg.party_size} people\n"
+
+                            displayed_traverses.add(req.traverse_group)
+                    else:
+                        summary += f"  {req}\n"
             else:
                 summary += f"\n{user}: UNASSIGNED\n"
-                for req in sorted(user_requests, key=lambda r: r.preference_rank):
-                    summary += f"  P{req.preference_rank}: {req.hut_name}, {req.start_date.strftime('%Y-%m-%d')} to {req.end_date.strftime('%Y-%m-%d')}, {req.party_size} people\n"
+                for req in sorted(user_requests, key=lambda r: (r.preference_rank, r.start_date)):
+                    if req.is_traverse:
+                        summary += f"  P{req.preference_rank} (TRAVERSE): {req.hut_name}, {req.start_date.strftime('%Y-%m-%d')} to {req.end_date.strftime('%Y-%m-%d')}, {req.party_size} people\n"
+                    else:
+                        summary += f"  P{req.preference_rank}: {req.hut_name}, {req.start_date.strftime('%Y-%m-%d')} to {req.end_date.strftime('%Y-%m-%d')}, {req.party_size} people\n"
 
         # Hut summaries
         summary += f"\n{'='*60}\n"
