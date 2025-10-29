@@ -20,6 +20,80 @@ from datetime import datetime
 # Valid hut names
 VALID_HUTS = ['Bradley', 'Benson', 'Peter Grubb', 'Ludlow']
 
+def parse_traverse_request(row):
+    """
+    Parse a traverse request and split into two separate reservations.
+    Returns list of 2 row dicts, or None if can't parse.
+
+    Example input:
+    Hut: "Bradley to Benson traverse"
+    StartDate: "In to Bradley 3/20 In to Benson 3/22"
+    EndDate: "Out of Bradley 3/22 Out of Benson 3/23"
+
+    Returns:
+    [
+        {Bradley: 3/20-3/22},
+        {Benson: 3/22-3/23}
+    ]
+    """
+    hut_str = row['Hut'].lower()
+
+    # Parse hut names from "Bradley to Benson traverse"
+    match = re.search(r'(\w+)\s+to\s+(\w+)', hut_str)
+    if not match:
+        return None
+
+    hut1_name = match.group(1).capitalize()
+    hut2_name = match.group(2).capitalize()
+
+    # Parse dates from "In to Bradley 3/20 In to Benson 3/22"
+    start_str = row['StartDate']
+    end_str = row['EndDate']
+
+    # Extract dates using regex
+    all_dates = re.findall(r'\d{1,2}/\d{1,2}', start_str + ' ' + end_str)
+
+    # Remove duplicates while preserving order
+    dates = []
+    seen = set()
+    for d in all_dates:
+        if d not in seen:
+            dates.append(d)
+            seen.add(d)
+
+    if len(dates) < 3:
+        return None
+
+    # dates[0] = into hut1, dates[1] = into hut2 (out of hut1), dates[2] = out of hut2
+    year = "2026"  # Assume 2026
+    date1 = f"{dates[0]}/{year}"  # Into first hut
+    date2 = f"{dates[1]}/{year}"  # Into second hut (out of first)
+    date3 = f"{dates[2]}/{year}"  # Out of second hut
+
+    rows = []
+
+    # First hut reservation
+    rows.append({
+        'UserName': row['UserName'],
+        'PreferenceRank': row['PreferenceRank'],
+        'Hut': hut1_name,
+        'StartDate': date1,
+        'EndDate': date2,
+        'PartySize': row['PartySize']
+    })
+
+    # Second hut reservation
+    rows.append({
+        'UserName': row['UserName'],
+        'PreferenceRank': row['PreferenceRank'],
+        'Hut': hut2_name,
+        'StartDate': date2,
+        'EndDate': date3,
+        'PartySize': row['PartySize']
+    })
+
+    return rows
+
 def normalize_hut_name(hut_str):
     """
     Extract and normalize hut name.
@@ -27,9 +101,9 @@ def normalize_hut_name(hut_str):
     """
     hut_str = hut_str.strip()
 
-    # Check for traverse requests
+    # Check for traverse requests - will be handled separately
     if 'traverse' in hut_str.lower():
-        return (hut_str, False, "Traverse request - needs manual handling")
+        return (hut_str, False, "Traverse request - will be split")
 
     # Check for "OR" multiple huts
     if ' OR ' in hut_str:
@@ -59,6 +133,9 @@ def normalize_date(date_str):
     """
     date_str = date_str.strip()
 
+    # Strip parenthetical notes (e.g., "(could shift forward or back 1 day)")
+    date_str = re.sub(r'\s*\([^)]*\)\s*', ' ', date_str).strip()
+
     # Already in correct format
     if re.match(r'\d{4}-\d{2}-\d{2}', date_str):
         return (date_str, True, None)
@@ -84,12 +161,19 @@ def normalize_date(date_str):
             continue
 
     # Try more flexible parsing
-    # "Jan 21 2026"
+    # "Jan 21 2026" or "March 1 2026"
     match = re.match(r'(\w+)\s+(\d+)\s+(\d{4})', date_str)
     if match:
+        month_str, day, year = match.groups()
+        # Try abbreviated month first
         try:
-            month_str, day, year = match.groups()
             dt = datetime.strptime(f"{month_str} {day} {year}", '%b %d %Y')
+            return (dt.strftime('%Y-%m-%d'), True, None)
+        except:
+            pass
+        # Try full month name
+        try:
+            dt = datetime.strptime(f"{month_str} {day} {year}", '%B %d %Y')
             return (dt.strftime('%Y-%m-%d'), True, None)
         except:
             pass
@@ -135,6 +219,16 @@ def clean_csv(input_file, output_file, include_invalid=False):
     issues = []
 
     for i, row in enumerate(rows, start=2):  # Start at 2 (line 1 is header)
+        # Check if this is a traverse request that should be split
+        if 'traverse' in row['Hut'].lower():
+            traverse_rows = parse_traverse_request(row)
+            if traverse_rows:
+                # Process each part of the traverse separately
+                for traverse_row in traverse_rows:
+                    rows.append(traverse_row)
+                print(f"  Split traverse request for {row['UserName']} into 2 reservations")
+                continue  # Skip normal processing for this row
+
         cleaned = {}
         is_valid = True
         row_issues = []

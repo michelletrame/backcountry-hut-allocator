@@ -21,6 +21,10 @@ PREFERENCE_SCORES = {
     5: 5     # Fifth choice
 }
 
+# Bonus for each user who receives at least one assignment
+# Set high to prioritize getting everyone something over optimizing preferences
+USER_ASSIGNMENT_BONUS = 10000
+
 # Optimization parameters
 NUM_ITERATIONS = 20
 TIMEOUT_SECONDS = 300

@@ -1,7 +1,7 @@
 import copy
 import random
 from hut_allocator.hut import Hut
-from hut_allocator.config import PREFERENCE_SCORES
+from hut_allocator.config import PREFERENCE_SCORES, USER_ASSIGNMENT_BONUS
 
 class Allocation:
     """Represents a complete allocation of reservation requests to huts."""
@@ -50,12 +50,25 @@ class Allocation:
             self.unassigned_requests.add(request)
 
     def calculate_score(self):
-        """Calculate total score based on which preferences were satisfied."""
-        score = 0
+        """
+        Calculate total score prioritizing user coverage over preference rank.
+
+        Score = (users_assigned * USER_ASSIGNMENT_BONUS) + preference_points
+
+        This ensures the optimizer prioritizes getting everyone at least one
+        assignment before optimizing for specific preference ranks.
+        """
+        # Count unique users who have at least one assignment
+        assigned_users = set(req.user_name for req in self.assigned_requests)
+        users_assigned_bonus = len(assigned_users) * USER_ASSIGNMENT_BONUS
+
+        # Add preference scores
+        preference_score = 0
         for request in self.assigned_requests:
-            score += PREFERENCE_SCORES.get(request.preference_rank, 0)
-        self.score = score
-        return score
+            preference_score += PREFERENCE_SCORES.get(request.preference_rank, 0)
+
+        self.score = users_assigned_bonus + preference_score
+        return self.score
 
     def get_user_requests(self, user_name):
         """Get all requests for a specific user."""
