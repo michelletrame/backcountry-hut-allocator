@@ -183,7 +183,7 @@ def convert_folder(input_folder, output_csv, use_ai=False, force_python=False, a
     # Write to CSV
     if all_rows:
         with open(output_csv, 'w', newline='') as f:
-            fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize']
+            fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'Sanctioned']
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(all_rows)

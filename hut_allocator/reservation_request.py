@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 class ReservationRequest:
     """Represents a single reservation request from a user."""
 
-    def __init__(self, user_name, preference_rank, hut_name, start_date, end_date, party_size, traverse_group=None):
+    def __init__(self, user_name, preference_rank, hut_name, start_date, end_date, party_size, traverse_group=None, sanctioned=False):
         self.user_name = user_name
         self.preference_rank = int(preference_rank)  # 1-5, where 1 is most preferred
         self.hut_name = hut_name
@@ -11,6 +11,7 @@ class ReservationRequest:
         self.end_date = end_date if isinstance(end_date, datetime) else datetime.strptime(end_date, "%Y-%m-%d")
         self.party_size = int(party_size)
         self.traverse_group = traverse_group  # None for regular, e.g., "traverse_1" for linked traverse
+        self.sanctioned = sanctioned  # True for officially sanctioned trips (highest priority)
         self.assigned = False
 
         # Make request_id unique including hut and dates for traverse legs
@@ -23,6 +24,11 @@ class ReservationRequest:
     def is_traverse(self):
         """Check if this request is part of a traverse."""
         return self.traverse_group is not None
+
+    @property
+    def is_sanctioned(self):
+        """Check if this is an officially sanctioned trip."""
+        return self.sanctioned
 
     @property
     def num_nights(self):
@@ -41,7 +47,8 @@ class ReservationRequest:
     def __repr__(self):
         status = "ASSIGNED" if self.assigned else "UNASSIGNED"
         traverse_info = f" [TRAVERSE: {self.traverse_group}]" if self.is_traverse else ""
-        return f"{self.user_name} (P{self.preference_rank}): {self.hut_name}, {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}, {self.party_size} people [{status}]{traverse_info}"
+        sanctioned_info = " [SANCTIONED]" if self.is_sanctioned else ""
+        return f"{self.user_name} (P{self.preference_rank}): {self.hut_name}, {self.start_date.strftime('%Y-%m-%d')} to {self.end_date.strftime('%Y-%m-%d')}, {self.party_size} people [{status}]{sanctioned_info}{traverse_info}"
 
     def __eq__(self, other):
         if not isinstance(other, ReservationRequest):

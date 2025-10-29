@@ -76,6 +76,9 @@ class DOCXParser:
                 field_value = cells[1]
 
                 if 'hut name' in field_name:
+                    # Check for officially sanctioned designation
+                    if 'officially sanctioned' in field_value.lower():
+                        pref_data['sanctioned'] = True
                     pref_data['hut_name'] = field_value
                 elif 'date in' in field_name:
                     pref_data['date_in'] = self._parse_date(field_value)
@@ -240,7 +243,8 @@ class DOCXParser:
                 'Hut': pref['hut_name'],
                 'StartDate': pref['date_in'],
                 'EndDate': pref['date_out'],
-                'PartySize': pref['party_size']
+                'PartySize': pref['party_size'],
+                'Sanctioned': 'YES' if pref.get('sanctioned', False) else ''
             })
 
         return rows

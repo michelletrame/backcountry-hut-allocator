@@ -35,6 +35,10 @@ def load_requests_from_csv(filename):
             # Get traverse group (optional field for backward compatibility)
             traverse_group = row.get('TraverseGroup', '').strip() or None
 
+            # Get sanctioned status (optional field for backward compatibility)
+            sanctioned_value = row.get('Sanctioned', '').strip().upper()
+            sanctioned = sanctioned_value in ['YES', 'TRUE', '1']
+
             request = ReservationRequest(
                 user_name=row['UserName'].strip(),
                 preference_rank=int(row['PreferenceRank']),
@@ -42,7 +46,8 @@ def load_requests_from_csv(filename):
                 start_date=row['StartDate'].strip(),
                 end_date=row['EndDate'].strip(),
                 party_size=party_size,
-                traverse_group=traverse_group
+                traverse_group=traverse_group,
+                sanctioned=sanctioned
             )
             requests.append(request)
 
@@ -53,10 +58,10 @@ def save_allocation_to_csv(allocation, filename):
     Save allocation results to CSV file.
 
     Output format:
-    UserName,PreferenceRank,Hut,StartDate,EndDate,PartySize,TraverseGroup,Status
+    UserName,PreferenceRank,Hut,StartDate,EndDate,PartySize,TraverseGroup,Sanctioned,Status
     """
     with open(filename, 'w', newline='') as f:
-        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'TraverseGroup', 'Status']
+        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'TraverseGroup', 'Sanctioned', 'Status']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
 
         writer.writeheader()
@@ -83,7 +88,8 @@ def save_allocation_to_csv(allocation, filename):
                         'EndDate': req.end_date.strftime('%Y-%m-%d'),
                         'PartySize': req.party_size,
                         'TraverseGroup': req.traverse_group or '',
-                        'Status': f'ASSIGNED (Preference {req.preference_rank})'
+                        'Sanctioned': 'YES' if req.is_sanctioned else '',
+                        'Status': f'ASSIGNED (Preference {req.preference_rank})' + (' [SANCTIONED]' if req.is_sanctioned else '')
                     })
             else:
                 # List all unassigned requests for this user
@@ -96,6 +102,7 @@ def save_allocation_to_csv(allocation, filename):
                         'EndDate': req.end_date.strftime('%Y-%m-%d'),
                         'PartySize': req.party_size,
                         'TraverseGroup': req.traverse_group or '',
+                        'Sanctioned': 'YES' if req.is_sanctioned else '',
                         'Status': 'UNASSIGNED'
                     })
 

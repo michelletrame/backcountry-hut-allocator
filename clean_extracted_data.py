@@ -282,6 +282,9 @@ def clean_csv(input_file, output_file, include_invalid=False):
         # TraverseGroup (from traverse row dict, or empty for regular requests)
         cleaned['TraverseGroup'] = row.get('TraverseGroup', '')
 
+        # Sanctioned (officially sanctioned trips get priority)
+        cleaned['Sanctioned'] = row.get('Sanctioned', '')
+
         # Store results
         if is_valid:
             cleaned_rows.append(cleaned)
@@ -298,7 +301,7 @@ def clean_csv(input_file, output_file, include_invalid=False):
 
     # Write cleaned data
     if cleaned_rows:
-        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'TraverseGroup']
+        fieldnames = ['UserName', 'PreferenceRank', 'Hut', 'StartDate', 'EndDate', 'PartySize', 'TraverseGroup', 'Sanctioned']
         if include_invalid:
             fieldnames.append('_INVALID')
 

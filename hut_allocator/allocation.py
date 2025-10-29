@@ -156,6 +156,10 @@ class Allocation:
 
     def greedy_assign(self):
         """Greedy assignment: assign in order of preference rank."""
+        # FIRST: Assign all officially sanctioned requests (highest priority)
+        self._assign_sanctioned_requests()
+
+        # THEN: Continue with normal greedy assignment for remaining users
         # Get unique requests (one per user-preference, treating traverse as one unit)
         unique_requests = self._get_unique_requests()
 
@@ -172,6 +176,10 @@ class Allocation:
 
     def random_assign(self):
         """Randomly assign requests."""
+        # FIRST: Assign all officially sanctioned requests (highest priority)
+        self._assign_sanctioned_requests()
+
+        # THEN: Continue with random assignment for remaining users
         # Get unique requests (one per user-preference, treating traverse as one unit)
         unique_requests = self._get_unique_requests()
         shuffled = list(unique_requests)
@@ -188,11 +196,16 @@ class Allocation:
         """
         Get one request per user-preference combination.
         For traverses, return just the first leg (the second will be handled atomically).
+        Excludes sanctioned requests (they are handled separately).
         """
         unique = []
         seen_traverses = set()
 
         for req in self.requests:
+            # Skip sanctioned requests - they're handled separately with priority
+            if req.is_sanctioned:
+                continue
+
             if req.is_traverse:
                 if req.traverse_group not in seen_traverses:
                     unique.append(req)
@@ -202,11 +215,53 @@ class Allocation:
 
         return unique
 
+    def _assign_sanctioned_requests(self):
+        """
+        Assign ALL officially sanctioned requests first (highest priority).
+        These MUST ALL be granted before any other assignments.
+        """
+        # Get all sanctioned requests, grouped by user
+        sanctioned_by_user = {}
+        seen_traverses = set()
+
+        for req in self.requests:
+            if not req.is_sanctioned:
+                continue
+
+            # For traverses, only process once
+            if req.is_traverse:
+                if req.traverse_group in seen_traverses:
+                    continue
+                seen_traverses.add(req.traverse_group)
+
+            user = req.user_name
+            if user not in sanctioned_by_user:
+                sanctioned_by_user[user] = []
+            sanctioned_by_user[user].append(req)
+
+        # Assign ALL sanctioned requests in preference order
+        for user, requests in sanctioned_by_user.items():
+            # Sort by preference rank (1 first)
+            sorted_requests = sorted(requests, key=lambda r: r.preference_rank)
+
+            # Assign ALL sanctioned requests for this user
+            for request in sorted_requests:
+                if not self.assign_request(request):
+                    # This should not happen - sanctioned requests MUST be granted
+                    print(f"⚠️  WARNING: Could not assign sanctioned request for {user}: {request}")
+                    print(f"    This may indicate a conflict or capacity issue.")
+
     def try_swap_requests(self, req1, req2):
         """
         Try swapping two requests. This means unassigning both and trying to assign
         the other user's request in each slot.
+
+        IMPORTANT: Sanctioned requests can NEVER be swapped or unassigned.
         """
+        # NEVER swap sanctioned requests - they have absolute priority
+        if req1.is_sanctioned or req2.is_sanctioned:
+            return False
+
         if req1.user_name == req2.user_name:
             return False
 
