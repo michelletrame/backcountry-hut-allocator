@@ -8,11 +8,13 @@ This tool solves the problem of fairly distributing limited backcountry hut rese
 
 ## Features
 
+- **Document Processing**: Automatically extract reservation data from PDF and Word documents
 - **Ranked Preferences**: Users submit up to 5 reservation requests, ranked by preference (1 = most preferred)
 - **Multi-Night Stays**: Supports variable-length reservations (1-N nights)
 - **Shared Capacity**: Multiple groups can share a hut on the same night (up to capacity)
 - **Optimization Algorithm**: Uses multi-start local search to find optimal allocations
 - **Alternative Suggestions**: Automatically suggests alternatives for unassigned users
+- **Hybrid Parsing**: Python parsers for speed + AI fallback for complex cases
 - **CSV Input/Output**: Easy-to-use CSV format for requests and results
 
 ## System Configuration
@@ -41,8 +43,25 @@ The optimizer tries to maximize total points across all users.
 # Clone or download this repository
 cd backcountry-hut-allocator
 
-# No external dependencies required - uses Python 3 standard library
+# Install required libraries for document processing
+pip3 install pdfplumber python-docx anthropic
 ```
+
+**Note**: If you only need CSV input (no document processing), no external dependencies are required.
+
+## Quick Start
+
+### Option 1: Process Documents Directly (NEW!)
+
+Convert PDF/Word reservation forms to allocations in one command:
+
+```bash
+python3 process_reservations.py ~/path/to/forms --output results/
+```
+
+See [DOCUMENT_WORKFLOW.md](DOCUMENT_WORKFLOW.md) for detailed documentation.
+
+### Option 2: Use CSV Input (Original Method)
 
 ## Input Format
 

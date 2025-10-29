@@ -11,20 +11,32 @@ def load_requests_from_csv(filename):
 
     Example:
     John Smith,1,Bradley,2026-02-12,2026-02-14,4
-    John Smith,2,Benson,2026-02-15,2026-02-17,4
+    John Smith,2,Benson,2026-02-15,2026-02-17,ENTIRE
     """
+    from hut_allocator.config import HUTS
+
     requests = []
 
     with open(filename, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
+            # Handle ENTIRE party size
+            party_size_str = row['PartySize'].strip()
+            hut_name = row['Hut'].strip()
+
+            if party_size_str.upper() == 'ENTIRE':
+                # Get hut capacity
+                party_size = HUTS.get(hut_name, 15)  # Default to 15 if hut not found
+            else:
+                party_size = int(party_size_str)
+
             request = ReservationRequest(
                 user_name=row['UserName'].strip(),
                 preference_rank=int(row['PreferenceRank']),
-                hut_name=row['Hut'].strip(),
+                hut_name=hut_name,
                 start_date=row['StartDate'].strip(),
                 end_date=row['EndDate'].strip(),
-                party_size=int(row['PartySize'])
+                party_size=party_size
             )
             requests.append(request)
 
